@@ -4,9 +4,11 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { AntDesign } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native";
+
 
 const AuthStack = createStackNavigator();
-const MainTab = createStackNavigator();
+const MainTab = createBottomTabNavigator();
 
 import RegistrationScreen from "./Screens/auth/RegistrationScreen";
 import LoginScreen from "./Screens/auth/LoginScreen";
@@ -38,6 +40,7 @@ export const useRoute = (isAuth) => {
         tabBarStyle: {
           height: 80,
           alignItems: "center",
+          justifyContent: "center",
         },
         tabBarActiveTintColor: "#ffffff",
         tabBarInactiveTintColor: "rgba(33, 33, 33, 0.8)",
@@ -51,9 +54,22 @@ export const useRoute = (isAuth) => {
           headerTitle: "Публикации",
           tabBarItemStyle: {
             height: 40,
+            maxWidth: 70,
             alignSelf: "center",
+            borderRadius: 20,
             marginRight: 31,
           },
+          headerRight: () => (
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                right: 16,
+              }}
+            >
+              <Feather name="log-out" size={24} color="#BDBDBD" />
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ focused, size, color }) => (
             <AntDesign name="appstore-o" size={size} color={color} />
           ),
@@ -66,7 +82,9 @@ export const useRoute = (isAuth) => {
           headerTitle: "Создать публикацию",
           tabBarItemStyle: {
             height: 40,
+            maxWidth: 70,
             alignSelf: "center",
+            borderRadius: 20,
             marginRight: 31,
           },
           tabBarIcon: ({ focused, size, color }) => (
@@ -81,7 +99,9 @@ export const useRoute = (isAuth) => {
           headerShown: false,
           tabBarItemStyle: {
             height: 40,
+            maxWidth: 70,
             alignSelf: "center",
+            borderRadius: 20,
           },
           tabBarIcon: ({ focused, size, color }) => (
             <Feather name="user" size={size} color={color} />
