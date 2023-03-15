@@ -20,8 +20,8 @@ const initialState = {
   password: "",
 };
 
-export default function LoginScreen() {
-  const image = require("../assets/BGphoto.jpg");
+export default function LoginScreen({ navigation }) {
+  const image = require("../../assets/BGphoto.jpg");
 
   const [isShowKeyBoard, setIsShowKeyBoard] = useState(false);
   const [state, setState] = useState(initialState);
@@ -109,22 +109,23 @@ export default function LoginScreen() {
                   <Text style={styles.passwordInput}>Показать</Text>
                 </TouchableOpacity>
               </View>
-                <View>
-                  <TouchableOpacity
-                    style={styles.button}
-                    activeOpacity={0.8}
-                    onPress={onKeyboardHide}
-                  >
-                    <Text style={styles.btnTitle}>Войти</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.bottomText}>
-                      Нет аккаунта? Зарегистрироваться
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+              <View>
+                <TouchableOpacity
+                  style={styles.button}
+                  activeOpacity={0.8}
+                  onPress={onKeyboardHide}
+                >
+                  <Text style={styles.btnTitle}>Войти</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => navigation.navigate("Registration")}
+                >
+                  <Text style={styles.bottomText}>
+                    Нет аккаунта? Зарегистрироваться
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </ImageBackground>

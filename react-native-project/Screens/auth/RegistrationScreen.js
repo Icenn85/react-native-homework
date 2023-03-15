@@ -21,8 +21,8 @@ const initialState = {
   password: "",
 };
 
-export default function RegistrationScreen() {
-  const image = require("../assets/BGphoto.jpg");
+export default function RegistrationScreen({ navigation }) {
+  const image = require("../../assets/BGphoto.jpg");
 
   const [isShowKeyBoard, setIsShowKeyBoard] = useState(false);
   const [state, setState] = useState(initialState);
@@ -69,7 +69,7 @@ export default function RegistrationScreen() {
                 <TouchableOpacity>
                   <Image
                     style={styles.addBtn}
-                    source={require("../assets/add.png")}
+                    source={require("../../assets/add.png")}
                   />
                 </TouchableOpacity>
               </View>
@@ -149,6 +149,7 @@ export default function RegistrationScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.8}
+                    onPress={() => navigation.navigate("Login")}
                   >
                     <Text style={styles.bottomText}>
                       Уже есть аккаунт? Войти
