@@ -48,10 +48,10 @@ export const useRoute = (isAuth) => {
       }}
     >
       <MainTab.Screen
-        name="Posts"
+        name="PostsScreen"
         component={PostsScreen}
         options={{
-          headerTitle: "Публикации",
+          headerShown: false,
           tabBarItemStyle: {
             height: 40,
             maxWidth: 70,
@@ -76,10 +76,10 @@ export const useRoute = (isAuth) => {
         }}
       />
       <MainTab.Screen
-        name="CreatePost"
+        name="CreatePostsScreen"
         component={CreatePostsScreen}
         options={{
-          headerTitle: "Создать публикацию",
+          headerShown: false,
           tabBarItemStyle: {
             height: 40,
             maxWidth: 70,
@@ -93,7 +93,7 @@ export const useRoute = (isAuth) => {
         }}
       />
       <MainTab.Screen
-        name="Profile"
+        name="ProfileScreen"
         component={ProfileScreen}
         options={{
           headerShown: false,
