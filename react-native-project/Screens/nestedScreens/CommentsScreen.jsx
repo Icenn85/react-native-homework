@@ -65,13 +65,13 @@ const styles = StyleSheet.create({
   },
   sendBtnUp: {
     position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
     right: 8,
     bottom: 8,
     backgroundColor: "#FF6C00",
     width: 34,
     height: 34,
     borderRadius: 100,
-    paddingLeft: 11,
-    paddingTop: 8,
   },
 });

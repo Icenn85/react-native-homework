@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { Camera } from "expo-camera";
+import React, { useState, useEffect } from "react";
+import { Camera, CameraType } from "expo-camera";
 import {
+  KeyboardAvoidingView,
   StyleSheet,
   View,
   Text,
@@ -8,6 +9,7 @@ import {
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
+  Image,
 } from "react-native";
 import { MaterialIcons, SimpleLineIcons, Feather } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -22,8 +24,11 @@ export default function CreatePostsScreen({ navigation }) {
   const [state, setState] = useState(initialState);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [camera, setCamera] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [location, setLocation] = useState(null);
+  const [type, setType] = useState(CameraType.back);
+   const [hasPermission, setHasPermission] = useState(null);
   
 
 
@@ -39,7 +44,32 @@ export default function CreatePostsScreen({ navigation }) {
         setLocation(location);
         
     })();
-    }, []);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
+  }, []);
+
+  if (hasPermission === null) {
+    return <View />;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
+  const onCameraReady = () => {
+    setIsCameraReady(true);
+  };
+
+
+  const toggleCameraType = () => {
+    setType((current) =>
+      current === CameraType.back ? CameraType.front : CameraType.back
+    );
+  };
 
   const takePhoto = async () => {
     const photo = await camera.takePictureAsync();
@@ -49,7 +79,9 @@ export default function CreatePostsScreen({ navigation }) {
 
   const sendPhoto = () => {
     console.log("navigation", navigation);
-    navigation.navigate("DefaultScreenPosts", { photo });
+    navigation.navigate("DefaultScreen", { photo });
+    setPhoto("");
+    setState(initialState);
     resetForm();
   };
 
@@ -78,91 +110,107 @@ export default function CreatePostsScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
-        <View style={styles.containerHeader}>
-          <Text style={styles.title}>Создать публикацию</Text>
-          <TouchableOpacity
-            style={styles.btnArrowLeft}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate("DefaultScreen")}
-          >
-            <Feather
-              name="arrow-left"
-              size={24}
-              color="rgba(33, 33, 33, 0.8)"
-            />
-          </TouchableOpacity>
-        </View>
-        <Camera style={styles.camera} ref={setCamera}>
-          {photo && (
-            <View style={styles.takePhotoContainer}>
-              <Image
-                source={{ uri: photo }}
-                style={{ height: 240, width: 343 }}
-              />
-            </View>
-          )}
-          <TouchableOpacity onPress={takePhoto} style={styles.iconCam}>
-            <MaterialIcons name="photo-camera" size={24} color="#BDBDBD" />
-          </TouchableOpacity>
-        </Camera>
-        <TouchableOpacity style={styles.pickImg} onPress={pickImage}>
-          <Text
-            style={{
-              ...styles.pickImgTitle,
-              color: "#BDBDBD",
-            }}
-          >
-            Загрузите фото
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={{ ...styles.input, marginBottom: 16 }}
-            placeholder="Название..."
-            onFocus={() => setIsShowKeyboard(true)}
-            onChangeText={(value) => {
-              setState((prevState) => ({
-                ...prevState,
-                title: value,
-              }));
-            }}
-            value={state.title}
-          />
-          <TextInput
-            style={{ ...styles.input, paddingLeft: 28 }}
-            placeholder="Местность..."
-            onFocus={() => setIsShowKeyboard(true)}
-            onChangeText={(value) => {
-              setState((prevState) => ({
-                ...prevState,
-                location: value,
-              }));
-            }}
-            value={state.location}
-          />
-          <SimpleLineIcons
-            name="location-pin"
-            size={24}
-            style={styles.iconLoc}
-          />
-        </View>
-        <TouchableOpacity
-          style={{
-            ...styles.button,
-            backgroundColor: photo ? "#FF6C00" : "#F6F6F6",
-          }}
-          activeOpacity={0.7}
-          onPress={sendPhoto}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <Text
-            style={{
-              ...styles.btnText,
-              color: photo ? "#FFF" : "#BDBDBD",
-            }}
+          <View style={styles.containerHeader}>
+            <Text style={styles.title}>Создать публикацию</Text>
+            <TouchableOpacity
+              style={styles.btnArrowLeft}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate("DefaultScreen")}
+            >
+              <Feather
+                name="arrow-left"
+                size={24}
+                color="rgba(33, 33, 33, 0.8)"
+              />
+            </TouchableOpacity>
+          </View>
+          <Camera
+            style={styles.camera}
+            ref={setCamera}
+            type={type}
+            onCameraReady={onCameraReady}
           >
-            Опубликовать
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cameraTypeBtn}
+              onPress={toggleCameraType}
+            >
+              <MaterialIcons name="flip-camera-ios" size={30} color="#F6F6F6" />
+            </TouchableOpacity>
+            {photo && (
+              <View style={styles.takePhotoContainer}>
+                <Image
+                  source={{ uri: photo }}
+                  style={{ height: 240, width: 343 }}
+                />
+              </View>
+            )}
+            <TouchableOpacity onPress={takePhoto} style={styles.iconCam}>
+              <MaterialIcons name="photo-camera" size={24} color="#BDBDBD" />
+            </TouchableOpacity>
+          </Camera>
+          <TouchableOpacity style={styles.pickImg} onPress={pickImage}>
+            <Text
+              style={{
+                ...styles.pickImgTitle,
+                color: "#BDBDBD",
+              }}
+            >
+              Загрузите фото
+            </Text>
+          </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={{ ...styles.input, marginBottom: 16 }}
+              placeholder="Название..."
+              onFocus={() => setIsShowKeyboard(true)}
+              onChangeText={(value) => {
+                setState((prevState) => ({
+                  ...prevState,
+                  title: value,
+                }));
+              }}
+              value={state.title}
+            />
+            <TextInput
+              style={{ ...styles.input, paddingLeft: 28 }}
+              placeholder="Местность..."
+              onFocus={() => setIsShowKeyboard(true)}
+              onChangeText={(value) => {
+                setState((prevState) => ({
+                  ...prevState,
+                  location: value,
+                }));
+              }}
+              value={state.location}
+            />
+            <SimpleLineIcons
+              name="location-pin"
+              size={24}
+              style={styles.iconLoc}
+            />
+          </View>
+          <TouchableOpacity
+            style={{
+              ...styles.button,
+              backgroundColor: photo ? "#FF6C00" : "#F6F6F6",
+            }}
+            activeOpacity={0.7}
+            onPress={sendPhoto}
+            disabled={!photo}
+          >
+            <Text
+              style={{
+                ...styles.btnText,
+                color: photo ? "#FFF" : "#BDBDBD",
+              }}
+            >
+              Опубликовать
+            </Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
         <TouchableOpacity style={styles.iconTrash} onPress={resetForm}>
           <Feather name="trash-2" size={24} color="#BDBDBD" />
         </TouchableOpacity>
@@ -181,6 +229,8 @@ const styles = StyleSheet.create({
   containerHeader: {
     position: "relative",
     height: 88,
+    borderBottomColor: "rgba(0, 0, 0,0.1 )",
+    borderBottomWidth: 1,
   },
   title: {
     fontFamily: "Roboto-Medium",
@@ -196,7 +246,6 @@ const styles = StyleSheet.create({
   btnArrowLeft: {
     position: "absolute",
     top: 54,
-    left: 16,
   },
   camera: {
     height: 300,
@@ -207,6 +256,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
+  },
+  cameraTypeBtn: {
+    position: "absolute",
+    top: 10,
+    right: 13,
+    opacity: 0.6,
   },
   takePhotoContainer: {
     position: "absolute",

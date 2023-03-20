@@ -12,7 +12,7 @@ export default function MapScreen({ route }) {
         initialRegion={{
           latitude,
           longitude,
-          latitudeDelta: 0.001,
+          latitudeDelta: 0.006,
           longitudeDelta: 0.006,
         }}
       >
@@ -34,5 +34,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+    width: "100%",
+    height: "100%",
   },
 });
