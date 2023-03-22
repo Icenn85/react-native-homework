@@ -1,5 +1,14 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import { db } from "../../firebase/config";
+import {
+  doc,
+  addDoc,
+  collection,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
+import { useSelector } from "react-redux";
 import {
   View,
   Text,
@@ -7,22 +16,65 @@ import {
   TextInput,
   StyleSheet,
   SafeAreaView,
+  Image,
   FlatList,
+  Keyboard,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
-export default function CommentsScreen () {
-    const [comment, setComment] = useState("");
-    const [allComments, setAllComments] = useState(null);
+export default function CommentsScreen({ route }) {
+  const [comment, setComment] = useState("");
+  const [allComments, setAllComments] = useState(null);
+
+  const { postId, photo } = route.params;
+
+  const { nickname } = useSelector((state) => state.auth);
+
+  const createComment = async () => {
+    await addDoc(collection(doc(collection(db, "posts"), postId), "comments"), {
+      comment,
+      nickname,
+    });
+    setComment("");
+    Keyboard.dismiss();
+    await addCommentsNum();
+  };
+
+  const addCommentsNum = async () => {
+    if (allComments !== 0) {
+      const comNum = await allComments.length;
+      return await updateDoc(doc(db, "posts", postId), {
+        commentsNumber: comNum,
+      });
+    }
+  };
+
+  const getAllComments = async () => {
+    const docRef = doc(db, "posts", postId);
+    await onSnapshot(collection(docRef, "comments"), (data) => {
+      setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
+     addCommentsNum();
+  };
+
+  useEffect(() => {
+    getAllComments();
+  }, []);
 
   return (
     <View>
       <SafeAreaView style={styles.container}>
+        <View style={styles.img}>
+          <Image
+            source={{ uri: photo }}
+            style={{ height: 240, borderRadius: 8 }}
+          />
+        </View>
         <FlatList
           data={allComments}
           renderItem={({ item }) => (
             <View>
-              <Text>{item.name}</Text>
+              <Text>{item.nickname}</Text>
               <Text>{item.comment}</Text>
             </View>
           )}
@@ -34,12 +86,12 @@ export default function CommentsScreen () {
         <TextInput
           style={styles.input}
           placeholder="Комментировать..."
-          onChangeText={() => {}}
+          onChangeText={setComment}
         />
         <TouchableOpacity
           style={styles.sendBtnUp}
           activeOpacity={0.7}
-          onPress={() => {}}
+          onPress={createComment}
         >
           <AntDesign name="arrowup" size={24} color="#FFFFFF" />
         </TouchableOpacity>
@@ -52,6 +104,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingTop: 32,
+    justifyContent: "flex-end",
   },
   input: {
     position: "relative",

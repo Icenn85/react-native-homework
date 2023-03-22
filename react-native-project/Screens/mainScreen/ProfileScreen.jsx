@@ -1,6 +1,5 @@
-<script src="http://localhost:8097"></script>;
 import React, { useState } from "react";
-
+import { authLogout } from "../../redux/auth/authOperations";
 import {
   ImageBackground,
   StyleSheet,
@@ -9,41 +8,141 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
-  TextInput,
 } from "react-native";
+import {
+  Feather, AntDesign,
+  EvilIcons,
+  SimpleLineIcons,
+} from "@expo/vector-icons";
+import { useDispatch, useSelector } from "react-redux";
+import { db } from "../../firebase/config";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const image = require("../../assets/BGphoto.jpg");
 
   const [userPosts, setUserPosts] = useState([]);
+  const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+
+  const dispatch = useDispatch();
+
+  const { userId, nickname, userPhoto } = useSelector((state) => state.auth);
+
+  const getUserPosts = async () => {
+    const q = query(collection(db, "posts"), where("userId", "==", userId));
+    await onSnapshot(q, (data) => {
+      setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
+  };
+
+  useEffect(() => {
+    getUserPosts();
+  }, []);
+
+
+  const logOut = () => {
+    dispatch(authLogout());
+  };
 
   return (
     <View style={styles.container}>
       <ImageBackground source={image} style={styles.image}>
         <View style={styles.formBg}>
           <View style={styles.avatar}>
-            <TouchableOpacity>
-              <Image
-                style={styles.deleteBtn}
-                source={require("../../assets/delete.png")}
-              />
+            <Image
+              source={{ uri: userPhoto }}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 16,
+              }}
+            />
+            <TouchableOpacity style={styles.delIcon}>
+              <Image source={require("../../assets/delete.png")} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.title}>Name</Text>
+          <TouchableOpacity
+            style={styles.logOut}
+            activeOpacity={0.6}
+            onPress={logOut}
+          >
+            <Feather name="log-out" size={24} color="#BDBDBD" />
+          </TouchableOpacity>
+          <Text style={styles.title}>{nickname}</Text>
           <FlatList
             data={userPosts}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <Text style={styles.item}>{item.key}</Text>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: item.photo }}
+                  style={{ height: 240, borderRadius: 8 }}
+                />
+                <View style={styles.imageDetails}>
+                  <Text style={styles.name}>{item.title}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <TouchableOpacity
+                        onPress={() =>
+                          navigation.navigate("CommentsScreen", {
+                            postId: item.id,
+                          })
+                        }
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginRight: 24,
+                        }}
+                      >
+                        <EvilIcons name="comment" size={24} color="#BDBDBD" />
+                        <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>
+                          {item.commentsNum}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <AntDesign name="like2" size={24} color="#BDBDBD" />
+                        <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>
+                          0
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate("MapScreen", {
+                          location: item.location,
+                        })
+                      }
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <SimpleLineIcons
+                        name="location-pin"
+                        size={24}
+                        color="#BDBDBD"
+                      />
+                      <Text
+                        style={{
+                          marginLeft: 3,
+                          fontSize: 16,
+                          textDecorationLine: "underline",
+                        }}
+                      >
+                        {item.locationName}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
             )}
           />
-          <View>
-            <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-              <Text style={styles.btnTitle}>Зарегистрироваться</Text>
-            </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8}>
-              <Text style={styles.bottomText}>Уже есть аккаунт? Войти</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </ImageBackground>
     </View>
@@ -63,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   formBg: {
-    height: 700,
+    height: 650,
     width: "100%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 25,
@@ -81,9 +180,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "#F6F6F6",
   },
-  deleteBtn: {
-    top: 75,
+  delIcon: {
+    top: -45,
     left: 101,
+  },
+  logOut: {
+    position: "absolute",
+    top: 22,
+    right: 16,
   },
   title: {
     fontStyle: "normal",
@@ -96,45 +200,17 @@ const styles = StyleSheet.create({
     marginBottom: 33,
     color: "#212121",
   },
-  input: {
-    height: 50,
-    width: 370,
-    padding: 16,
-    borderWidth: 1,
-    backgroundColor: "#F6F6F6",
-    borderColor: "#E8E8E8",
-    borderRadius: 8,
-    marginHorizontal: 16,
+  imageContainer: {
+    flex: 1,
+    flexDirection: "column",
+    marginBottom: 32,
+    height: "100%",
   },
-  passwordInput: {
-    position: "absolute",
-    top: -34,
-    right: 32,
+  name: {
+    marginTop: 8,
+    marginBottom: 8,
     fontSize: 16,
-    color: "#1B4371",
-  },
-  button: {
-    height: 50,
-    width: 370,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FF6C00",
-    marginTop: 43,
-    marginBottom: 16,
-    borderRadius: 100,
-  },
-  btnTitle: {
-    fontFamily: "RobotoRegular",
-    fontSize: 16,
-    lineHeight: 20,
-    color: "#fff",
-    textAlign: "center",
-  },
-  bottomText: {
-    color: "#1B4371",
-    fontSize: 16,
-    textAlign: "center",
-    fontSize: 16,
-    lineHeight: 19,
+    fontFamily: "Roboto-Medium",
+    fontWeight: "500",
   },
 });

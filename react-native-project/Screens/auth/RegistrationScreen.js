@@ -14,6 +14,10 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useDispatch } from "react-redux";
+import { authRegistration } from "../../redux/auth/authOperations";
+
 
 const initialState = {
   login: "",
@@ -33,6 +37,8 @@ export default function RegistrationScreen({ navigation }) {
     width: Dimensions.get("window").width - 5 * 2,
   });
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     const onChange = () => {
       const width = Dimensions.get("window").width - 5 * 2;
@@ -48,7 +54,13 @@ export default function RegistrationScreen({ navigation }) {
     Keyboard.dismiss();
     setIsShowKeyBoard(false);
     setState(initialState);
-    console.log(state);
+  };
+
+  const handleSubmit = () => {
+    Keyboard.dismiss();
+    setIsShowKeyBoard(false);
+    dispatch(authRegistration({...state}));
+    setState(initialState);
   };
 
   return (
@@ -138,25 +150,22 @@ export default function RegistrationScreen({ navigation }) {
                   <Text style={styles.passwordInput}>Показать</Text>
                 </TouchableOpacity>
               </View>
-              {!isShowKeyBoard && (
-                <View>
-                  <TouchableOpacity
-                    style={styles.button}
-                    activeOpacity={0.8}
-                    onPress={onKeyboardHide}
-                  >
-                    <Text style={styles.btnTitle}>Зарегистрироваться</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => navigation.navigate("Login")}
-                  >
-                    <Text style={styles.bottomText}>
-                      Уже есть аккаунт? Войти
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+
+              <View>
+                <TouchableOpacity
+                  style={styles.button}
+                  activeOpacity={0.8}
+                  onPress={handleSubmit}
+                >
+                  <Text style={styles.btnTitle}>Зарегистрироваться</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => navigation.navigate("Login")}
+                >
+                  <Text style={styles.bottomText}>Уже есть аккаунт? Войти</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </ImageBackground>

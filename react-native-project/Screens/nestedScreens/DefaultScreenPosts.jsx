@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   StyleSheet,
   View,
@@ -8,17 +9,29 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Feather, EvilIcons, SimpleLineIcons } from "@expo/vector-icons";
+import { db } from "../../firebase/config";
+import { collection, onSnapshot } from "firebase/firestore";
+import { authLogout } from "../../redux/auth/authOperations";
 
 export default function DefaultScreenPosts({ route, navigation }) {
   const [posts, setPosts] = useState([]);
-  console.log("route.params", route.params);
+  const dispatch = useDispatch();
+
+   const { email, nickname, userPhoto } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (route.params) {
-      setPosts((prevState) => [...prevState, route.params]);
-    }
-  }, [route.params]);
-  console.log("posts", posts);
+    getAllPosts();
+  }, []);
+
+  const getAllPosts = async () => {
+    await onSnapshot(collection(db, "posts"), (data) => {
+      setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
+  };
+
+  const logOut = () => {
+    dispatch(authLogout());
+  };
 
   return (
     <View style={styles.container}>
@@ -27,19 +40,16 @@ export default function DefaultScreenPosts({ route, navigation }) {
         <TouchableOpacity
           style={styles.logOut}
           activeOpacity={0.6}
-          onPress={() => {}}
+          onPress={logOut}
         >
           <Feather name="log-out" size={24} color="#BDBDBD" />
         </TouchableOpacity>
       </View>
       <View style={styles.userWrapper}>
-        <Image
-          style={styles.img}
-          source={require("../../assets/userPhoto.jpg")}
-        />
+        {userPhoto && <Image style={styles.img} source={{ uri: userPhoto }} />}
         <View>
-          <Text style={styles.userName}>Natali Romanova</Text>
-          <Text style={styles.userEmail}>email@example.com</Text>
+          <Text style={styles.userName}>{nickname}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
         </View>
       </View>
       <FlatList
@@ -61,7 +71,7 @@ export default function DefaultScreenPosts({ route, navigation }) {
                 borderRadius: 8,
               }}
             />
-            <Text style={styles.postName}>{item.name}</Text>
+            <Text style={styles.postName}>{item.title}</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -78,7 +88,13 @@ export default function DefaultScreenPosts({ route, navigation }) {
                   }
                 >
                   <EvilIcons name="comment" size={24} color="#BDBDBD" />
-                  <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>0</Text>
+                  {item.commentsNum ? (
+                    <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>
+                      {item.commentsNum}
+                    </Text>
+                  ) : (
+                    <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>0</Text>
+                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() =>
@@ -164,5 +180,12 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     fontWeight: "400",
     color: "rgba(33, 33, 33, 0.8)",
+  },
+  postName: {
+    marginTop: 8,
+    fontFamily: "Roboto-Regular",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
   },
 });

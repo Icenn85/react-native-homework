@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Camera, CameraType } from "expo-camera";
 import {
   KeyboardAvoidingView,
@@ -14,6 +15,9 @@ import {
 import { MaterialIcons, SimpleLineIcons, Feather } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
+import { storage, db } from "../../firebase/config";
+import { collection, addDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const initialState = {
   title: "",
@@ -30,7 +34,7 @@ export default function CreatePostsScreen({ navigation }) {
   const [type, setType] = useState(CameraType.back);
    const [hasPermission, setHasPermission] = useState(null);
   
-
+const { userId, nickname } = useSelector((state) => state.auth);
 
   useEffect(() => {
     (async () => {
@@ -78,8 +82,9 @@ export default function CreatePostsScreen({ navigation }) {
   };
 
   const sendPhoto = () => {
-    console.log("navigation", navigation);
-    navigation.navigate("DefaultScreen", { photo });
+    uploadPostToServer();
+    // uploadPhotoToServer();
+    navigation.navigate("DefaultScreen");
     setPhoto("");
     setState(initialState);
     resetForm();
@@ -97,18 +102,43 @@ export default function CreatePostsScreen({ navigation }) {
     }
   };
 
+  const uploadPostToServer = async () => {
+    const photo = await uploadPhotoToServer();
+    const uniquePostId = Date.now().toString();
+    const createPost = await addDoc(collection(db, "posts"), {
+      photo,
+      title: state.title,
+      locationName: state.location,
+      location: location.coords,
+      userId,
+      nickname,
+    });
+  };
+
+  const uploadPhotoToServer = async () => {
+    const response = await fetch(photo);
+    const file = await response.blob();
+    const uniquePostId = Date.now().toString();
+    const storageRef = await ref(storage, `postImages/${uniquePostId}.jpeg`);
+    await uploadBytes(storageRef, file);
+
+    const processedPhoto = await getDownloadURL(storageRef);
+    return processedPhoto;
+  };
+
+
   const resetForm = () => {
     setState(initialState);
     setPhoto(null);
   };
 
-  function keyboardHide() {
+  const onKeyboardHide = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
-  }
+  };
 
   return (
-    <TouchableWithoutFeedback onPress={keyboardHide}>
+    <TouchableWithoutFeedback onPress={onKeyboardHide}>
       <View style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}

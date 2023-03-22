@@ -6,7 +6,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   TextInput,
   Platform,
   KeyboardAvoidingView,
@@ -14,6 +13,8 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from "react-native";
+import { useDispatch } from "react-redux";
+import { authLogin } from "../../redux/auth/authOperations";
 
 const initialState = {
   email: "",
@@ -31,6 +32,8 @@ export default function LoginScreen({ navigation }) {
     width: Dimensions.get("window").width - 5 * 2,
   });
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     const onChange = () => {
       const width = Dimensions.get("window").width - 5 * 2;
@@ -46,7 +49,13 @@ export default function LoginScreen({ navigation }) {
     Keyboard.dismiss();
     setIsShowKeyBoard(false);
     setState(initialState);
-    console.log(state);
+  };
+
+  const handleSubmit = () => {
+    setIsShowKeyBoard(false);
+    Keyboard.dismiss();
+    dispatch(authLogin(state));
+    setState(initialState);
   };
 
   return (
@@ -113,7 +122,7 @@ export default function LoginScreen({ navigation }) {
                 <TouchableOpacity
                   style={styles.button}
                   activeOpacity={0.8}
-                  onPress={onKeyboardHide}
+                  onPress={handleSubmit}
                 >
                   <Text style={styles.btnTitle}>Войти</Text>
                 </TouchableOpacity>

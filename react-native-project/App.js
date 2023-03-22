@@ -1,36 +1,39 @@
 import React, { useCallback } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Main } from "./components/Main";
+import { Provider } from "react-redux";
+import { StyleSheet, View } from "react-native";
 import { useFonts } from "expo-font";
-import { AppLoading } from "expo";
 import * as SplashScreen from "expo-splash-screen";
-import { NavigationContainer } from "@react-navigation/native";
-import { useRoute } from "./router";
+import { store } from "./redux/store";
+
+SplashScreen.preventAutoHideAsync();
 
 
 
 export default function App() {
-  const routing = useRoute(true);
   
-  // const [fontsLoaded] = useFonts({
-  //   "Roboto-Bold": require("../react-native-project/fonts/Roboto-Bold.ttf"),
-  //   "Roboto-Regular": require("../react-native-project/fonts/Roboto-Regular.ttf"),
-  // });
+  const [fontsLoaded] = useFonts({
+    "Roboto-Bold": require("../react-native-project/fonts/Roboto-Bold.ttf"),
+    "Roboto-Regular": require("../react-native-project/fonts/Roboto-Regular.ttf"),
+  });
 
-  // const onLayoutRootView = useCallback(async () => {
-  //   if (fontsLoaded) {
-  //     await SplashScreen.hideAsync();
-  //   }
-  // }, [fontsLoaded]);
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
-  // if (!fontsLoaded) { 
-  //   return null;
-  // }
+//  if (!fontsLoaded) {
+//    return null;
+//  }
 
   return (
-    // <View style={styles.container} onLayout={onLayoutRootView}>
-        <NavigationContainer>{routing}</NavigationContainer>
-    // </View>
-  )
+    <Provider store={store}>
+      <View style={styles.container} onLayout={onLayoutRootView}>
+        <Main />
+      </View>
+    </Provider>
+  );
   
 }
 
@@ -38,7 +41,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
   },
 });
