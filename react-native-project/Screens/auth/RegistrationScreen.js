@@ -176,12 +176,12 @@ export default function RegistrationScreen({ navigation }) {
 
   const styles = StyleSheet.create({
     container: {
-      position: "reletive",
+      position: "relative",
       flex: 1,
       backgroundColor: "#fff",
     },
     image: {
-      position: "reletive",
+      position: "relative",
       flex: 1,
       resizeMode: "cover",
       justifyContent: "flex-end",
