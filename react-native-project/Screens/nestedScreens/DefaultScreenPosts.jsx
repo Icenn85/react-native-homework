@@ -9,9 +9,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Feather, EvilIcons, SimpleLineIcons, AntDesign } from "@expo/vector-icons";
-import db from "../../../firebase/config";
-// import { db } from "../../firebase/config";
-// import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase/config";
+import { collection, onSnapshot } from "firebase/firestore";
 import { authLogout } from "../../redux/auth/authOperations";
 
 export default function DefaultScreenPosts({ route, navigation }) {
@@ -24,19 +23,10 @@ export default function DefaultScreenPosts({ route, navigation }) {
     getAllPosts();
   }, []);
 
-  // const getAllPosts = async () => {
-  //   await onSnapshot(collection(db, "posts"), (data) => {
-  //     setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-  //   });
-  // };
-
   const getAllPosts = async () => {
-    await db
-      .firestore()
-      .collection("posts")
-      .onSnapshot((data) =>
-        setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-      );
+    await onSnapshot(collection(db, "posts"), (data) => {
+      setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
   };
 
   const logOut = () => {

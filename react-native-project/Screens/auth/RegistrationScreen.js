@@ -65,47 +65,17 @@ export default function RegistrationScreen({ navigation }) {
     }
   };
 
-  const uploadImgToServer = async () => {
-    try {
-      const response = await fetch(userPhoto);
-      const file = await response.blob();
-      const uniqueAvatarId = Date.now().toString();
-      await db.storage().ref(`userPhoto/${uniqueAvatarId}`).put(file);
-
-      const processedPicture = await db
-        .storage()
-        .ref("userPhoto")
-        .child(uniqueAvatarId)
-        .getDownloadURL();
-      return processedPicture;
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-
   const onKeyboardHide = () => {
     Keyboard.dismiss();
     setIsShowKeyBoard(false);
     setState(initialState);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const usrPhotoRef = await uploadImgToServer();
-      dispatch(
-        authRegistration({ login, email, password, userPhoto: usrPhotoRef })
-      );
-      setState(initialState);
-      Keyboard.dismiss();
-      setIsShowKeyBoard(false);
-    } catch (error) {
-      console.log(error.message);
-    }
-    // Keyboard.dismiss();
-    // setIsShowKeyBoard(false);
-    // dispatch(authRegistration({ ...state, userPhoto }));
-    // setState(initialState);
+  const handleSubmit = () => {
+    Keyboard.dismiss();
+    setIsShowKeyBoard(false);
+    dispatch(authRegistration({ ...state, userPhoto }));
+    setState(initialState);
   };
 
   return (

@@ -1,14 +1,13 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import db from "../../firebase/config";
-// import { db } from "../../firebase/config";
-// import {
-//   doc,
-//   addDoc,
-//   collection,
-//   onSnapshot,
-//   updateDoc,
-// } from "firebase/firestore";
+import { db } from "../../firebase/config";
+import {
+  doc,
+  addDoc,
+  collection,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import { useSelector } from "react-redux";
 import {
   View,
@@ -32,20 +31,10 @@ export default function CommentsScreen({ route }) {
   const { nickname } = useSelector((state) => state.auth);
 
   const createComment = async () => {
-    // await addDoc(collection(doc(collection(db, "posts"), postId), "comments"), {
-    //   comment,
-    //   nickname,
-    // });
-    await db.firestore()
-      .collection("posts")
-      .doc(postId)
-      .collection("comments")
-      .add({ comment, nickname });
-    setComment("");
-    await db.firestore()
-      .collection("posts")
-      .doc(postId)
-      .set({ ...item, commentsCount: allComments.length + 1 });
+    await addDoc(collection(doc(collection(db, "posts"), postId), "comments"), {
+      comment,
+      nickname,
+    });
     Keyboard.dismiss();
     // await addCommentsNum();
   };
@@ -60,18 +49,12 @@ export default function CommentsScreen({ route }) {
   // };
 
   const getAllComments = async () => {
-    db.firestore()
-      .collection("posts")
-      .doc(postId)
-      .collection("comments")
-      .orderBy("date", "desc")
-      .onSnapshot((data) =>
-        setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-      );
-    // const docRef = doc(db, "posts", postId);
-    // await onSnapshot(collection(docRef, "comments"), (data) => {
-    //   setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    // });
+    await onSnapshot(
+      collection(doc(db, "posts", postId), "comments"),
+      (data) => {
+        setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      }
+    );
 
     //  addCommentsNum();
   };

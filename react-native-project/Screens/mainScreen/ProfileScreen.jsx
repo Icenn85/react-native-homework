@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { authLogout } from "../../redux/auth/authOperations";
 import {
   ImageBackground,
@@ -15,9 +15,8 @@ import {
   SimpleLineIcons,
 } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import db from "../../firebase/config";
-// import { db } from "../../firebase/config";
-// import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase/config";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 export default function ProfileScreen({ navigation }) {
   const image = require("../../assets/BGphoto.jpg");
@@ -29,22 +28,11 @@ export default function ProfileScreen({ navigation }) {
   const { userId, nickname, userPhoto } = useSelector((state) => state.auth);
 
   const getUserPosts = async () => {
-    await db
-      .firestore()
-      .collection("posts")
-      .where("userId", "==", userId)
-      .onSnapshot((data) =>
-        setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-      );
+    const postRef = await collection(db, "posts");
+    await onSnapshot(query(postRef, where("userId", "==", userId)), (data) => {
+      setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    });
   };
-
-
-  // const getUserPosts = async () => {
-  //   const q = query(collection(db, "posts"), where("userId", "==", userId));
-  //   await onSnapshot(q, (data) => {
-  //     setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-  //   });
-  // };
 
   useEffect(() => {
     getUserPosts();

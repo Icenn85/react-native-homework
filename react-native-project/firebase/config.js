@@ -1,12 +1,7 @@
-import * as firebase from "firebase";
-import "firebase/auth";
-import "firebase/storage";
-import "firebase/firestore";
-
-// import { initializeApp } from "firebase/app";
-// import { getAuth } from "firebase/auth";
-// import { getFirestore } from "firebase/firestore";
-// import { getStorage } from "firebase/storage";
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwvcCin35-BJanw1MGRI8k4W1wbVHWILI",
@@ -20,9 +15,7 @@ const firebaseConfig = {
   measurementId: "G-LV9TQ9ZEQL",
 };
 
-export default firebase.initializeApp(firebaseConfig);
-
-// const app = initializeApp(firebaseConfig);
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
-// export const storage = getStorage(app);
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app, "react-native-my.appspot.com");
