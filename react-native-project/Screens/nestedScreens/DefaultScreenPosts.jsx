@@ -8,9 +8,10 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { Feather, EvilIcons, SimpleLineIcons } from "@expo/vector-icons";
-import { db } from "../../firebase/config";
-import { collection, onSnapshot } from "firebase/firestore";
+import { Feather, EvilIcons, SimpleLineIcons, AntDesign } from "@expo/vector-icons";
+import db from "../../../firebase/config";
+// import { db } from "../../firebase/config";
+// import { collection, onSnapshot } from "firebase/firestore";
 import { authLogout } from "../../redux/auth/authOperations";
 
 export default function DefaultScreenPosts({ route, navigation }) {
@@ -23,10 +24,19 @@ export default function DefaultScreenPosts({ route, navigation }) {
     getAllPosts();
   }, []);
 
+  // const getAllPosts = async () => {
+  //   await onSnapshot(collection(db, "posts"), (data) => {
+  //     setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  //   });
+  // };
+
   const getAllPosts = async () => {
-    await onSnapshot(collection(db, "posts"), (data) => {
-      setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    });
+    await db
+      .firestore()
+      .collection("posts")
+      .onSnapshot((data) =>
+        setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
   };
 
   const logOut = () => {
@@ -79,7 +89,9 @@ export default function DefaultScreenPosts({ route, navigation }) {
                 marginTop: 11,
               }}
             >
-              <>
+              <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
                 <TouchableOpacity
                   style={{ flexDirection: "row", alignItems: "center" }}
                   activeOpacity={0.6}
@@ -88,14 +100,29 @@ export default function DefaultScreenPosts({ route, navigation }) {
                   }
                 >
                   <EvilIcons name="comment" size={24} color="#BDBDBD" />
-                  {item.commentsNum ? (
-                    <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>
-                      {item.commentsNum}
-                    </Text>
-                  ) : (
-                    <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>0</Text>
-                  )}
+                  <Text
+                    style={{
+                      marginLeft: 6,
+                      color: item.comments ? "#212121" : "#BDBDBD",
+                    }}
+                  >
+                    {item.comments || 0}
+                  </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <AntDesign name="like2" size={24} color="#BDBDBD" />
+                        <Text
+                          style={{
+                            marginLeft: 6,
+                            color: item.likes ? "#212121" : "#BDBDBD",
+                          }}
+                        >
+                          {item.likes || 0}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate("MapScreen", {
@@ -116,10 +143,9 @@ export default function DefaultScreenPosts({ route, navigation }) {
                       textDecorationLine: "underline",
                     }}
                   >
-                    {item.locationName}
+                    {item.location.name}
                   </Text>
                 </TouchableOpacity>
-              </>
             </View>
           </View>
         )}

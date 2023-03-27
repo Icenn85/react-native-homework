@@ -1,13 +1,14 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { db } from "../../firebase/config";
-import {
-  doc,
-  addDoc,
-  collection,
-  onSnapshot,
-  updateDoc,
-} from "firebase/firestore";
+import db from "../../firebase/config";
+// import { db } from "../../firebase/config";
+// import {
+//   doc,
+//   addDoc,
+//   collection,
+//   onSnapshot,
+//   updateDoc,
+// } from "firebase/firestore";
 import { useSelector } from "react-redux";
 import {
   View,
@@ -26,35 +27,53 @@ export default function CommentsScreen({ route }) {
   const [comment, setComment] = useState("");
   const [allComments, setAllComments] = useState(null);
 
-  const { postId, photo } = route.params;
+  const { postId, photo, item } = route.params;
 
   const { nickname } = useSelector((state) => state.auth);
 
   const createComment = async () => {
-    await addDoc(collection(doc(collection(db, "posts"), postId), "comments"), {
-      comment,
-      nickname,
-    });
+    // await addDoc(collection(doc(collection(db, "posts"), postId), "comments"), {
+    //   comment,
+    //   nickname,
+    // });
+    await db.firestore()
+      .collection("posts")
+      .doc(postId)
+      .collection("comments")
+      .add({ comment, nickname });
     setComment("");
+    await db.firestore()
+      .collection("posts")
+      .doc(postId)
+      .set({ ...item, commentsCount: allComments.length + 1 });
     Keyboard.dismiss();
-    await addCommentsNum();
+    // await addCommentsNum();
   };
 
-  const addCommentsNum = async () => {
-    if (allComments !== 0) {
-      const comNum = await allComments.length;
-      return await updateDoc(doc(db, "posts", postId), {
-        commentsNumber: comNum,
-      });
-    }
-  };
+  // const addCommentsNum = async () => {
+  //   if (allComments !== 0) {
+  //     const comNum = await allComments.length;
+  //     return await updateDoc(doc(db, "posts", postId), {
+  //       commentsNumber: comNum,
+  //     });
+  //   }
+  // };
 
   const getAllComments = async () => {
-    const docRef = doc(db, "posts", postId);
-    await onSnapshot(collection(docRef, "comments"), (data) => {
-      setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    });
-     addCommentsNum();
+    db.firestore()
+      .collection("posts")
+      .doc(postId)
+      .collection("comments")
+      .orderBy("date", "desc")
+      .onSnapshot((data) =>
+        setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+    // const docRef = doc(db, "posts", postId);
+    // await onSnapshot(collection(docRef, "comments"), (data) => {
+    //   setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    // });
+
+    //  addCommentsNum();
   };
 
   useEffect(() => {
@@ -85,6 +104,7 @@ export default function CommentsScreen({ route }) {
       <View style={{ marginTop: "auto" }}>
         <TextInput
           style={styles.input}
+          value={comment}
           placeholder="Комментировать..."
           onChangeText={setComment}
         />

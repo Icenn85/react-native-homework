@@ -15,25 +15,36 @@ import {
   SimpleLineIcons,
 } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { db } from "../../firebase/config";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import db from "../../firebase/config";
+// import { db } from "../../firebase/config";
+// import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 export default function ProfileScreen({ navigation }) {
   const image = require("../../assets/BGphoto.jpg");
 
   const [userPosts, setUserPosts] = useState([]);
-  const [isShowKeyboard, setIsShowKeyboard] = useState(false);
 
   const dispatch = useDispatch();
 
   const { userId, nickname, userPhoto } = useSelector((state) => state.auth);
 
   const getUserPosts = async () => {
-    const q = query(collection(db, "posts"), where("userId", "==", userId));
-    await onSnapshot(q, (data) => {
-      setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    });
+    await db
+      .firestore()
+      .collection("posts")
+      .where("userId", "==", userId)
+      .onSnapshot((data) =>
+        setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
   };
+
+
+  // const getUserPosts = async () => {
+  //   const q = query(collection(db, "posts"), where("userId", "==", userId));
+  //   await onSnapshot(q, (data) => {
+  //     setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  //   });
+  // };
 
   useEffect(() => {
     getUserPosts();
@@ -102,16 +113,26 @@ export default function ProfileScreen({ navigation }) {
                         }}
                       >
                         <EvilIcons name="comment" size={24} color="#BDBDBD" />
-                        <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>
-                          {item.commentsNum}
+                        <Text
+                          style={{
+                            marginLeft: 6,
+                            color: item.comments ? "#212121" : "#BDBDBD",
+                          }}
+                        >
+                          {item.comments || 0}
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{ flexDirection: "row", alignItems: "center" }}
                       >
                         <AntDesign name="like2" size={24} color="#BDBDBD" />
-                        <Text style={{ marginLeft: 6, color: "#BDBDBD" }}>
-                          0
+                        <Text
+                          style={{
+                            marginLeft: 6,
+                            color: item.likes ? "#212121" : "#BDBDBD",
+                          }}
+                        >
+                          {item.likes || 0}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -135,7 +156,7 @@ export default function ProfileScreen({ navigation }) {
                           textDecorationLine: "underline",
                         }}
                       >
-                        {item.locationName}
+                        {item.location.name}
                       </Text>
                     </TouchableOpacity>
                   </View>

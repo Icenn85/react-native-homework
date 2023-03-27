@@ -13,8 +13,8 @@ SplashScreen.preventAutoHideAsync();
 export default function App() {
   
   const [fontsLoaded] = useFonts({
-    "Roboto-Bold": require("../react-native-project/fonts/Roboto-Bold.ttf"),
-    "Roboto-Regular": require("../react-native-project/fonts/Roboto-Regular.ttf"),
+    "Raleway-Bold": require("../react-native-project/fonts/Raleway-Bold.ttf"),
+    "Raleway-Regular": require("../react-native-project/fonts/Raleway-Regular.ttf"),
   });
 
   const onLayoutRootView = useCallback(async () => {
@@ -23,9 +23,9 @@ export default function App() {
     }
   }, [fontsLoaded]);
 
-//  if (!fontsLoaded) {
-//    return null;
-//  }
+ if (!fontsLoaded) {
+   return null;
+ }
 
   return (
     <Provider store={store}>

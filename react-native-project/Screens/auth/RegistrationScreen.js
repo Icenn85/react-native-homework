@@ -17,6 +17,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useDispatch } from "react-redux";
 import { authRegistration } from "../../redux/auth/authOperations";
+import db from "../../firebase/config";
 
 
 const initialState = {
@@ -30,6 +31,7 @@ export default function RegistrationScreen({ navigation }) {
 
   const [isShowKeyBoard, setIsShowKeyBoard] = useState(false);
   const [state, setState] = useState(initialState);
+  const [userPhoto, setUserPhoto] = useState("");
   const [isLoginOnFocused, setIsLoginOnFocused] = useState(false);
   const [isEmailOnFocused, setIsEmailOnFocused] = useState(false);
   const [isPassordOnFocused, setIsPassordOnFocused] = useState(false);
@@ -50,17 +52,60 @@ export default function RegistrationScreen({ navigation }) {
     };
   }, []);
 
+  const pickImg = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setUserPhoto(result.assets[0].uri);
+    }
+  };
+
+  const uploadImgToServer = async () => {
+    try {
+      const response = await fetch(userPhoto);
+      const file = await response.blob();
+      const uniqueAvatarId = Date.now().toString();
+      await db.storage().ref(`userPhoto/${uniqueAvatarId}`).put(file);
+
+      const processedPicture = await db
+        .storage()
+        .ref("userPhoto")
+        .child(uniqueAvatarId)
+        .getDownloadURL();
+      return processedPicture;
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+
   const onKeyboardHide = () => {
     Keyboard.dismiss();
     setIsShowKeyBoard(false);
     setState(initialState);
   };
 
-  const handleSubmit = () => {
-    Keyboard.dismiss();
-    setIsShowKeyBoard(false);
-    dispatch(authRegistration({...state}));
-    setState(initialState);
+  const handleSubmit = async () => {
+    try {
+      const usrPhotoRef = await uploadImgToServer();
+      dispatch(
+        authRegistration({ login, email, password, userPhoto: usrPhotoRef })
+      );
+      setState(initialState);
+      Keyboard.dismiss();
+      setIsShowKeyBoard(false);
+    } catch (error) {
+      console.log(error.message);
+    }
+    // Keyboard.dismiss();
+    // setIsShowKeyBoard(false);
+    // dispatch(authRegistration({ ...state, userPhoto }));
+    // setState(initialState);
   };
 
   return (
@@ -78,7 +123,13 @@ export default function RegistrationScreen({ navigation }) {
               }}
             >
               <View style={styles.avatar}>
-                <TouchableOpacity>
+                {userPhoto && (
+                  <Image
+                    source={{ uri: userPhoto }}
+                    style={{ width: 120, height: 120 }}
+                  />
+                )}
+                <TouchableOpacity onPress={pickImg}>
                   <Image
                     style={styles.addBtn}
                     source={require("../../assets/add.png")}

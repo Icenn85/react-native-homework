@@ -15,9 +15,10 @@ import {
 import { MaterialIcons, SimpleLineIcons, Feather } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
-import { storage, db } from "../../firebase/config";
-import { collection, addDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import db from "../../firebase/config";
+// import { storage, db } from "../../firebase/config";
+// import { collection, addDoc } from "firebase/firestore";
+// import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const initialState = {
   title: "",
@@ -102,10 +103,22 @@ const { userId, nickname } = useSelector((state) => state.auth);
     }
   };
 
+  // const uploadPostToServer = async () => {
+  //   const photo = await uploadPhotoToServer();
+  //   const uniquePostId = Date.now().toString();
+  //   const createPost = await addDoc(collection(db, "posts"), {
+  //     photo,
+  //     title: state.title,
+  //     locationName: state.location,
+  //     location: location.coords,
+  //     userId,
+  //     nickname,
+  //   });
+  // };
+
   const uploadPostToServer = async () => {
     const photo = await uploadPhotoToServer();
-    const uniquePostId = Date.now().toString();
-    const createPost = await addDoc(collection(db, "posts"), {
+    const createPost = await db.firestore().collection("posts").add({
       photo,
       title: state.title,
       locationName: state.location,
@@ -119,10 +132,17 @@ const { userId, nickname } = useSelector((state) => state.auth);
     const response = await fetch(photo);
     const file = await response.blob();
     const uniquePostId = Date.now().toString();
-    const storageRef = await ref(storage, `postImages/${uniquePostId}.jpeg`);
-    await uploadBytes(storageRef, file);
+     await db.storage().ref(`postImages/${uniquePostId}`).put(file);
+    // const storageRef = await ref(storage, `postImages/${uniquePostId}.jpeg`);
+    // await uploadBytes(storageRef, file);
 
-    const processedPhoto = await getDownloadURL(storageRef);
+    // const processedPhoto = await getDownloadURL(storageRef);
+    // return processedPhoto;
+    const processedPhoto = await db
+      .storage()
+      .ref("postImage")
+      .child(uniquePostId)
+      .getDownloadURL();
     return processedPhoto;
   };
 
