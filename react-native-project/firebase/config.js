@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyAwvcCin35-BJanw1MGRI8k4W1wbVHWILI",
   authDomain: "react-native-my.firebaseapp.com",

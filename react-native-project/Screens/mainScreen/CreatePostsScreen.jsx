@@ -83,15 +83,6 @@ const { userId, nickname } = useSelector((state) => state.auth);
     console.log("photo", photo);
   };
 
-  const sendPhoto = () => {
-    const URL = uploadPostToServer();
-    console.log("URL", URL);
-    // uploadPhotoToServer();
-    navigation.navigate("DefaultScreen");
-    // setDiscription("");
-    resetForm();
-  };
-
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -105,31 +96,50 @@ const { userId, nickname } = useSelector((state) => state.auth);
   };
 
   const uploadPostToServer = async () => {
-    const photo = await uploadPhotoToServer();
-    const uniquePostId = Date.now().toString();
-    console.log("photo", photo);
-    const createPost = await addDoc(collection(db, "posts"), {
-      photo,
-      photoName,
-      locationName,
-      location: location.coords,
-      userId,
-      nickname,
-    });
+    try {
+      const photo = await uploadPhotoToServer();
+      const uniquePostId = Date.now().toString();
+      console.log("photo", photo);
+      const createPost = await addDoc(collection(db, "posts"), {
+        photo,
+        photoName,
+        locationName,
+        location: location.coords,
+        userId,
+        nickname,
+      });
+    } catch (error) {
+      console.error("Error adding post: ", error);
+    }
+    
+  };
+  const sendPhoto = () => {
+    uploadPostToServer();
+    // uploadPhotoToServer();
+    navigation.navigate("DefaultScreen");
+    resetForm();
   };
 
   const uploadPhotoToServer = async () => {
-    const response = await fetch(photo);
-    const file = await response.blob();
-    const uniquePostId = Date.now().toString();
-    const storageRef = await ref(storage, `postImages/${uniquePostId}.jpeg`);
-    await uploadBytes(storageRef, file);
+    try {
+      // console.log(`photo`, photo);
+      const response = await fetch(photo);
+      // console.log(`response`, response);
+      const file = await response.blob();
+      const uniquePostId = Date.now().toString();
+      const storageRef = await ref(storage, `postImages/${uniquePostId}.jpeg`);
+      await uploadBytes(storageRef, file).then(() => {
+        console.log(`photo is uploaded`);
+      });
 
-    const processedPhoto = await getDownloadURL(storageRef);
-    return processedPhoto;
+      const processedPhoto = await getDownloadURL(storageRef);
+      return processedPhoto;
+    } catch (error) {
+      console.error("Error adding photo: ", error);
+    }
+    
     
   };
-
 
   const resetForm = () => {
     setPhotoName("");
