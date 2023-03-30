@@ -19,18 +19,20 @@ import { storage, db } from "../../firebase/config";
 import { collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-const initialState = {
-  title: "",
-  location: "",
-};
+// const initialState = {
+//   title: "",
+//   location: "",
+// };
 
 export default function CreatePostsScreen({ navigation }) {
-  const [state, setState] = useState(initialState);
+  // const [state, setState] = useState(initialState);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [camera, setCamera] = useState(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [photoName, setPhotoName] = useState("");
   const [location, setLocation] = useState(null);
+  const [locationName, setLocationName] = useState(null);
   const [type, setType] = useState(CameraType.back);
    const [hasPermission, setHasPermission] = useState(null);
   
@@ -82,11 +84,11 @@ const { userId, nickname } = useSelector((state) => state.auth);
   };
 
   const sendPhoto = () => {
-    uploadPostToServer();
+    const URL = uploadPostToServer();
+    console.log("URL", URL);
     // uploadPhotoToServer();
     navigation.navigate("DefaultScreen");
-    setPhoto("");
-    setState(initialState);
+    // setDiscription("");
     resetForm();
   };
 
@@ -105,10 +107,11 @@ const { userId, nickname } = useSelector((state) => state.auth);
   const uploadPostToServer = async () => {
     const photo = await uploadPhotoToServer();
     const uniquePostId = Date.now().toString();
+    console.log("photo", photo);
     const createPost = await addDoc(collection(db, "posts"), {
       photo,
-      title: state.title,
-      locationName: state.location,
+      photoName,
+      locationName,
       location: location.coords,
       userId,
       nickname,
@@ -124,11 +127,13 @@ const { userId, nickname } = useSelector((state) => state.auth);
 
     const processedPhoto = await getDownloadURL(storageRef);
     return processedPhoto;
+    
   };
 
 
   const resetForm = () => {
-    setState(initialState);
+    setPhotoName("");
+    setLocationName(null);
     setPhoto(null);
   };
 
@@ -196,25 +201,15 @@ const { userId, nickname } = useSelector((state) => state.auth);
               style={{ ...styles.input, marginBottom: 16 }}
               placeholder="Название..."
               onFocus={() => setIsShowKeyboard(true)}
-              onChangeText={(value) => {
-                setState((prevState) => ({
-                  ...prevState,
-                  title: value,
-                }));
-              }}
-              value={state.title}
+              onChangeText={setPhotoName}
+              value={photoName}
             />
             <TextInput
               style={{ ...styles.input, paddingLeft: 28 }}
               placeholder="Местность..."
               onFocus={() => setIsShowKeyboard(true)}
-              onChangeText={(value) => {
-                setState((prevState) => ({
-                  ...prevState,
-                  location: value,
-                }));
-              }}
-              value={state.location}
+              onChangeText={setLocationName}
+              value={locationName}
             />
             <SimpleLineIcons
               name="location-pin"
@@ -229,7 +224,6 @@ const { userId, nickname } = useSelector((state) => state.auth);
             }}
             activeOpacity={0.7}
             onPress={sendPhoto}
-            disabled={!photo}
           >
             <Text
               style={{
